@@ -1,0 +1,395 @@
+/*jslint browser:true*/
+/*global $*/
+/*global StackBlur*/
+/*global TweenMax*/
+/*global ScrollMagic*/
+/*global TimelineMax*/
+/*global Linear*/
+(function() {
+	'use strict';
+
+	/**
+	 * Desktop carousel, in the first slide the left arrow is hidden
+	 * and in the last slide. the right arrow is also hidden
+	 */
+
+	function checkitem() // check function
+	{
+		var $this = $('#myCarousel');
+		if ($('.carousel-inner .item:first').hasClass('active')) {
+			$this.children('.left.carousel-control').hide();
+			$this.children('.right.carousel-control').show();
+		} else if ($('.carousel-inner .item:last').hasClass('active')) {
+			$this.children('.right.carousel-control').hide();
+			$this.children('.left.carousel-control').show();
+		} else {
+			$this.children('.carousel-control').show();
+		}
+	}
+
+	$('#myCarousel').on('slid.bs.carousel', '', checkitem); // on caroussel move
+
+
+	/**
+	 * In app view the download buttons to the app should be hidden
+
+	function checkAppWebView()                        // check function
+	{
+	  var ua = new GLOBAL.WebModule.UserAgent();
+
+	  if(ua.WEB_VIEW === true){
+		  $('.app-click').css('display', 'none');
+		  $('.google-click').css('display', 'none');
+	  }
+	}
+  */
+
+	/**
+	 * In mobile view the carousel indicators must go below the image hero
+	 * Classes are added or removed in order to make this movement
+	 */
+	function checkMobileHeroCarousel() // check function
+	{
+		if ($('.js-carousel-inner-mobile').length > 0) {
+			var carouselNewHeight = $('.js-carousel-inner-mobile').height();
+			var containerHeight = $('.item.active').find('.thx-main-hero-text').height() + 15;
+			var totalTop = carouselNewHeight - containerHeight;
+			var mobileCarouselIndicators = document.getElementById('mobileCarouselIndicators');
+			mobileCarouselIndicators.style.top = totalTop.toString() + 'px';
+		}
+	}
+
+
+	/**
+	 * Add slide event to mobile carousel to keep track of its movement
+	 */
+	$('#mobileCarousel').on('slid.bs.carousel slid', '', checkMobileHeroCarousel);
+
+	/**
+	 * On document ready check mobile hero carousel
+	 */
+	$(document).ready(function() {
+		//checkAppWebView();
+		//checkMobileHeroCarousel();
+
+		var $linkFullScreen = $('#linkFullscreenSubpage');
+		if ($linkFullScreen) {
+			$linkFullScreen.click(
+				function() {
+					var $modalContainer = $('#fullscreen')[0];
+					var divModal = ($modalContainer.getElementsByClassName('section-modal-legal-disclaimer'))[0];
+					var divBlackBG = ($modalContainer.getElementsByClassName('section-black-modal-BG'))[0];
+					divModal.classList.remove('hide');
+					divBlackBG.classList.remove('hide');
+					divModal.classList.add('show');
+					divBlackBG.classList.add('show');
+					divModal.setAttribute('style', 'z-index: 99999');
+					divBlackBG.setAttribute('style', 'z-index: 99998');
+					var mobile = $('.mobile');
+					if (mobile[0]) {
+						$('html, body').animate({
+							scrollTop: 0
+						}, 1);
+					}
+				}
+			);
+		}
+		var pageName = location.pathname.substring(location.pathname.lastIndexOf('/') + 1);
+		if (pageName == 'mobile.html') {
+			var barList = $('.movies-explore-benefit-bar');
+			barList.css('height', 'auto');
+			barList.css('padding-top', '0px');
+
+			var exploreBar = $('#movies-page-container');
+			barList.css('height', '100px');
+		}
+		$('#principalItemTopBar').click(
+			function() {
+				var selectedItem = $('.movies-benefits-bar-item.selected');
+				var itemsInMenu = $('.restMenu');
+				var menuContainer = $('#movies-page-container');
+				//also the icon in principalItemTopBar needs to change
+				if (itemsInMenu.hasClass('removed')) {
+					itemsInMenu.removeClass('removed');
+					itemsInMenu.addClass('see');
+					selectedItem.addClass('up');
+					selectedItem.removeClass('down');
+					menuContainer.css('min-height', '310px');
+					itemsInMenu.css('display', 'block');
+				} else if (itemsInMenu.hasClass('see')) {
+					itemsInMenu.addClass('see');
+					itemsInMenu.addClass('removed');
+					selectedItem.addClass('down');
+					selectedItem.removeClass('up');
+					menuContainer.css('min-height', '0');
+					itemsInMenu.css('display', 'none');
+				} else {
+					itemsInMenu.addClass('see');
+					selectedItem.addClass('up');
+					selectedItem.removeClass('down');
+					menuContainer.css('min-height', '310px');
+					itemsInMenu.css('display', 'block');
+				}
+				var listsInMenu = $('.others');
+				//also the icon in principalItemTopBar needs to change
+				if (listsInMenu.hasClass('hide')) {
+					listsInMenu.removeClass('hide');
+				}
+			}
+		);
+		if ($('#moviesLi')) {
+			$('#moviesLi').click(
+				function() {
+					window.location.href = 'movies.html';
+				}
+			);
+		}
+		if ($('#musicLi')) {
+			$('#musicLi').click(
+				function() {
+					window.location.href = 'music.html';
+				}
+			);
+		}
+		if ($('#enhancedLi')) {
+			$('#enhancedLi').click(
+				function() {
+					window.location.href = 'enhanced.html';
+				}
+			);
+		}
+		if ($('#moreLi')) {
+			$('#moreLi').click(
+				function() {
+					window.location.href = 'more.html';
+				}
+			);
+		}
+		if ($('#allLi')) {
+			$('#allLi').click(
+				function() {
+					window.location.href = 'index.html';
+				}
+			);
+		}
+	});
+
+	/*Detects if browser == IE any version */
+	function isIE(userAgent) {
+		userAgent = userAgent || navigator.userAgent;
+		return userAgent.indexOf("MSIE ") > -1 || userAgent.indexOf("Trident/") > -1 /*|| userAgent.indexOf("Edge/") > -1*/ ;
+	}
+
+	$(document).ready(function() {
+
+		/*$(window).scroll(function () {
+		  if ($(window).scrollTop() > 55) {
+			$('.benefits-topnav').addClass('fixed-topnav');
+			$('.benefits-sticky-navbar').removeClass('fixed-topnav');
+		  }
+		  if ($(window).scrollTop() < 56)  {
+			$('.benefits-topnav').removeClass('fixed-topnav');
+		  }
+		  if(($(window).scrollTop() > 600) && ($( window ).width() > 1023)){
+			$('.benefits-topnav').removeClass('fixed-topnav');
+			$('.benefits-sticky-navbar').addClass('fixed-topnav');
+		  }
+		});*/
+
+		// On Document Ready and If Internet Explorer, remove all parallax scrolling
+		if (isIE()) {
+			$('.thx-desktop').removeClass("thx-desktop-scroll");
+			$('.top-container').removeClass("parallax-container");
+			$('.full-container').removeClass("parallax-container");
+			$('html').addClass('ie');
+		}
+
+	});
+
+	$(".benefits-topnav").first(".mobile-arrow").click(handleMenu);
+
+	function handleMenu() {
+		$(".benefits-topnav-items").toggle();
+		if ($('.benefits-topnav').hasClass("benefits-topnav--open")) {
+			$('.benefits-topnav').removeClass("benefits-topnav--open");
+			$('.mobile-arrow').find("svg").css("transform", "none");
+		} else {
+			$('.benefits-topnav').addClass("benefits-topnav--open");
+			$('.mobile-arrow').find("svg").css("transform", "rotateZ(-180deg)");
+		}
+	}
+
+	/*function to obtain mobile operating system*/
+
+	function getMobileOperatingSystem() {
+		var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+		var googleStoreLink = 'https://play.google.com/store/apps/details?id=com.att.thanks';
+		var appleStoreLink = 'https://itunes.apple.com/app/id1251584149';
+
+		// Windows Phone must come first because its UA also contains "Android"
+		if (/windows phone/i.test(userAgent)) {
+			return "Windows Phone";
+		}
+
+		if (/android/i.test(userAgent)) {
+			$('.thx-benefits-topnav-app-link').attr('href', googleStoreLink);
+			return "Android";
+		}
+
+		// iOS detection from: http://stackoverflow.com/a/9039885/177710
+		if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+			$('.thx-benefits-topnav-app-link').attr('href', appleStoreLink);
+			return "iOS";
+		}
+
+		return "unknown";
+	}
+
+
+
+	var $animation_elements = $('.bounce-up');
+	var $window = $(window);
+
+	function check_if_in_view() {
+		var window_height = $window.height();
+		var window_top_position = $window.scrollTop();
+		var window_bottom_position = (window_top_position + window_height);
+
+		$.each($animation_elements, function() {
+			var $element = $(this);
+			if ($element.hasClass('in-view')) {
+				return;
+			}
+			var element_height = $element.outerHeight(true);
+			var element_top_position = $element.offset().top - 150;
+			var element_bottom_position = (element_top_position + element_height);
+
+			if ($element.is($('#home-same-day-delivery-quarter-tile')) || $element.is($('#benefits-in-my-mind-container')) ||
+				$element.is($('#ticket-twosdays-container')) || $element.is($('#benefits-wi-fi-container'))) {
+				element_top_position = element_top_position + 60;
+				element_bottom_position = element_bottom_position + 60;
+			}
+			if ($element.is($('#benefits-event-access-container')) || $element.is($('#benefits-premier-support-container'))) {
+				element_top_position = element_top_position + 75;
+				element_bottom_position = element_bottom_position + 75;
+			}
+
+			//check to see if this current container is within viewport
+			if ((element_bottom_position >= window_top_position) &&
+				(element_top_position <= window_bottom_position)) {
+				$element.addClass('in-view');
+			} else {}
+		});
+	}
+
+	$window.on('scroll resize', check_if_in_view);
+	$window.trigger('scroll');
+
+	$("#home-ticket-twosdays-tile").click(function() {
+		window.location.href = 'benefits.html';
+	});
+	$("#home-event-access-tile").click(function() {
+		window.location.href = 'benefits.html';
+	});
+	$("#homepage-topgolf-container").click(function() {
+		window.location.href = 'benefits.html';
+	});
+	$("#homepage-blaze-pizza-container").click(function() {
+		window.location.href = 'benefits.html';
+	});
+	$("#home-ticket-twosday-full-tile").click(function() {
+		window.location.href = 'benefits.html';
+	});
+	$("#home-dining-half-tile").click(function() {
+		window.location.href = 'benefits.html';
+	});
+	$("#music-half-tile").click(function() {
+		window.location.href = 'benefits.html';
+	});
+
+	$("#home-event-access-half-tile").click(function() {
+		window.location.href = 'benefits.html';
+	});
+
+	/* clicks for benefits offers blue sticky navbar */
+	$("#benefits-sticky-navbar-ebtn").click(function() {
+		$('html, body').animate({
+			scrollTop: $("#entertainment").offset().top - 83
+		}, 'fast');
+	});
+	$("#benefits-sticky-navbar-mbtn").click(function() {
+		$('html, body').animate({
+			scrollTop: $("#music").offset().top - 83
+		}, 'fast');
+	});
+	$("#benefits-sticky-navbar-dbtn").click(function() {
+		$('html, body').animate({
+			scrollTop: $("#dining").offset().top - 83
+		}, 'fast');
+	});
+	$("#benefits-sticky-navbar-sbtn").click(function() {
+		$('html, body').animate({
+			scrollTop: $("#services").offset().top - 83
+		}, 'fast');
+	});
+
+	$("#benefits-sticky-navbar-topbtn").click(function() {
+		$('html, body').animate({
+			scrollTop: 0
+		}, 'fast');
+	});
+
+
+	/* FAQs Toggle Animation
+
+	$('.faq-container .tooltip').click(
+	  function(){
+		let $this = $(this),
+		  $answerElement = $this.next(),
+		  $visibleAnswer = $('.faq-answer:visible'),
+		  $visibleTooltip = $visibleAnswer.prev();
+
+		  $visibleAnswer.slideUp('fast', function(){
+			$visibleTooltip.rotate({ endDeg:0, duration:0.3, persist:true });
+			$visibleTooltip.text('+').addClass('collapsed');
+		  });
+
+		if($this.hasClass('collapsed')){
+		  $(this).rotate({ endDeg:45, duration:0.3, persist:true });
+		  $answerElement.slideDown("fast", function(){
+			$this.removeClass('collapsed');
+		  });
+		}
+		else {
+		  $answerElement.slideUp("fast", function(){
+			$this.text('+').addClass('collapsed');
+		  });
+		}
+	  }
+	);
+	/**
+	 * End FAQ Toggle animation
+	 */
+
+
+	/**
+	 * Add swipe functionality to mobile carousel.
+	 */
+	if ($('.js-carousel-inner-mobile') && $('.js-carousel-inner-mobile').length) {
+		$('.js-carousel-inner-mobile').swipe({
+			//Generic swipe handler for all directions
+			swipeLeft: function() {
+				/*event, direction, distance, duration, fingerCount*/
+				$(this).parent().carousel('next');
+			},
+			swipeRight: function() {
+				$(this).parent().carousel('prev');
+			}
+		});
+	}
+
+	$(window).resize(function() {
+		checkMobileHeroCarousel();
+	});
+
+})();

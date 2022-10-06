@@ -1,0 +1,1 @@
+var button=document.getElementById("expand-button"),panel=document.getElementById("expand-wrap");button.addEventListener("click",(function(){panel.classList.toggle("expanded");var e=" "+button.className+" ";~e.indexOf(" active ")?this.className=e.replace(" active "," "):this.className+=" active"}));

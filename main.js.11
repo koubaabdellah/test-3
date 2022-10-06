@@ -1,0 +1,41 @@
+var ariaAttrCk;
+
+
+$( document ).ready(function() {
+	//click press
+	$("#faq li .header").click(function() {
+		// $("#faq li").removeClass("xpand");
+		$(this).parent().toggleClass("xpand");
+		ariaAttrCk = $(this).attr("aria-expanded")
+		if(ariaAttrCk == "false") {
+			$(this).attr("aria-expanded", "true");
+			$(this).attr("aria-selected", "true");
+		}
+		else {
+			$(this).attr("aria-expanded", "false");
+			$(this).attr("aria-selected", "false");
+		}
+
+	})
+
+	$("button").click(function() {
+		$(this).find("section").removeClass("xpand");
+		
+	})
+	//key press
+	$("#faq li").keyup(function(event){
+	    if(event.keyCode == 13){
+			$(this).toggleClass("xpand");
+			ariaAttrCk = $(this).find("div.header").attr("aria-expanded")
+			if(ariaAttrCk == "false") {
+				$(this).find("div.header").attr("aria-expanded", "true");
+				$(this).find("div.header").attr("aria-selected", "true");
+			}
+			else {
+				$(this).find("div.header").attr("aria-expanded", "false");
+				$(this).find("div.header").attr("aria-selected", "false");
+			}
+	    }
+
+	});
+});

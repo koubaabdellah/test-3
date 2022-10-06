@@ -1,0 +1,869 @@
+
+// Load tab from URL
+window.onload = function(){
+	if(location.search != '') {
+		switch(location.search.replace('?','').replace('&','')){
+
+		case 'activate':
+				thumbNav.changeTab(2);
+				break;
+		case 'availability':
+				thumbNav.changeTab(3);
+
+				break;
+		case 'settings':
+				thumbNav.changeTab(4);
+
+				break;
+		case 'help':
+				thumbNav.changeTab(5);
+				break;
+		case 'videos':
+				thumbNav.changeTab(6);
+				break;		
+		}
+	} else {	
+		thumbNav.changeTab(4);
+	}
+}
+
+	var selMatchedStreet;
+	var selMatchedCity;
+	var selMatchedState;
+	var selMatchedZip;
+
+	jQuery(document).ready(function() {
+		jQuery("#address_submit").bind("click", handleZipSubmit);
+		// jQuery("#address_submit").bind("click", handleAddressSubmit);
+		// jQuery("#addMatch_submit").bind("click", submitAddressMatch);
+	});
+
+	function handleZipSubmit(event) {
+
+		event.preventDefault();
+		var sZip = jQuery("#zip_code").attr("value");
+
+		jQuery.ajax({
+			url:"./xml/check_availability_zip.xml", // /media/en_US/swf/3Gmicrocell/xml/check_availability_zip.xml
+			error: zipError,
+			success: zipSuccess
+
+		});
+	}
+	function zipError(jqXHR, textStatus, errorThrown) {
+	// alert(jqXHR, textStatus, errorThrown)
+	}
+	function zipSuccess(response) {
+		var xml = jQuery(response);
+		var availableZips = xml.find("zips").text();
+		var zipValue = jQuery("#zip_code").attr("value");
+		var zipMatch = availableZips.match(zipValue);
+		if(zipValue.length != 5) {
+			handleInvalid();
+		} else if(zipValue.length == 5 && zipMatch) {
+			handleEligible();
+		} else if(zipValue.length == 5 && !zipMatch) {
+			handleIneligible();
+		}
+	}
+
+	function handleAddressSubmit(event) {
+		event.preventDefault();
+		jQuery(event.target).hide();
+		jQuery("#address_loading").show();
+
+
+		var sAddress = jQuery("#address").attr("value");
+		var sCity = jQuery("#city").attr("value");
+		var sState = jQuery("#state").attr("value");
+		var sZip = jQuery("#zip_code").attr("value");
+		jQuery.ajax({
+			url:"http://www.att.com/cell-phone-service/servlets/microCellCheckEligibilityServlet",
+			// url:"http://www.wireless.att.com/cell-phone-service/servlets/microCellCheckEligibilityServlet",
+			// data:"streetAddress=" + sAddress + "&city=" + sCity + "&state=" + sState + "&zipCode=" + sZip,
+			// url: "xml/addressMatch.xml",
+			error: getError,
+			success: getSuccess,
+			complete: getComplete
+		});
+	}
+
+	function submitAddressMatch(event) {
+		event.preventDefault();
+		jQuery(event.target).hide();
+		jQuery("#addMatch_loading").show();
+
+		var sAddress;
+		var sCity;
+		var sState;
+		var sZip;
+
+		if (jQuery("#addMatch1Radio").attr("checked")) {
+			sAddress = jQuery(jQuery("#addMatch1").children()[0]).html();
+			sCity = jQuery(jQuery("#addMatch1").children()[1]).html();
+			sState = jQuery(jQuery("#addMatch1").children()[2]).html();
+			sZip = jQuery(jQuery("#addMatch1").children()[3]).html();
+		} else if (jQuery("#addMatch2Radio").attr("checked")) {
+			sAddress = jQuery(jQuery("#addMatch2").children()[0]).html();
+			sCity = jQuery(jQuery("#addMatch2").children()[1]).html();
+			sState = jQuery(jQuery("#addMatch2").children()[2]).html();
+			sZip = jQuery(jQuery("#addMatch2").children()[3]).html();
+		} else if (jQuery("#addMatch3Radio").attr("checked")) {
+			sAddress = jQuery(jQuery("#addMatch3").children()[0]).html();
+			sCity = jQuery(jQuery("#addMatch3").children()[1]).html();
+			sState = jQuery(jQuery("#addMatch3").children()[2]).html();
+			sZip = jQuery(jQuery("#addMatch3").children()[3]).html();
+		}
+
+
+
+		jQuery.ajax({
+			// url:"http://www.att.com/cell-phone-service/servlets/microCellCheckEligibilityServlet",
+			// url:"http://www.wireless.att.com/cell-phone-service/servlets/microCellCheckEligibilityServlet",
+			data: "street     Address=" + sAddress + "&city=" + sCity + "&state=" + sState + "&zipCode=" + sZip,
+			url: "xml/eligible.xml",
+			error: getError,
+			success: getSuccess
+		});
+
+	}
+
+	function createXMLDocument(string) {
+
+		var browserName = navigator.appName;
+		var doc;
+		// if (browserName == 'Microsoft Internet Explorer'){
+		// 	doc = new ActiveXObject('Microsoft.XMLDOM');
+
+		// 	doc.loadXML(string);
+		// }
+		// else{
+		doc = jQuery(string);
+		// }
+		return doc;
+	}
+
+
+	function getError(jqXHR, textStatus, errorThrown) {
+		alert("We're sorry, an error has occurred while trying to retrieve the data. Please try again.");
+	}
+
+	function getSuccess(response) {
+		var xml = jQuery(response);
+		// var xml = createXMLDocument(response);
+		var responseType = xml.find("responseType").text();
+		jQuery("#address_loading").hide();
+		jQuery("#address_submit").show();
+
+
+
+		if (responseType == "EligibilityIndicator") {
+			if (xml.find("eligibility").text() == "Ineligible") {
+				handleIneligible();
+			} else if (xml.find("eligibility").text() == "Eligible") {
+				handleEligible();
+			}
+		} else if (responseType == "AlternateAddressFound") {
+			handleAddressMatch(response);
+		} else if (responseType == "FieldValidationError") {
+			handleFieldError();
+		} else if (responseType == "DataError") {
+			handleDataError();
+		} else if (responseType == "ServiceDownError") {
+			handleServiceDown();
+		} else {
+
+		}
+	}
+
+	function getComplete(e, x) {
+		jQuery("#addMatch_submit").show();
+		jQuery("#address_submit").show();
+		jQuery("#address_loading").hide();
+		jQuery("#addMatch_loading").hide();
+	}
+
+	function parseAddressMatch(response) {
+		var xml = jQuery(response);
+		var add1 = jQuery(xml.find("customerMatchedAddress")[0]);
+		updateAddressMatch(jQuery("#addMatch1Radio"), jQuery("#addMatch1"), add1);
+		var add2 = jQuery(xml.find("customerMatchedAddress")[1]);
+		updateAddressMatch(jQuery("#addMatch2Radio"), jQuery("#addMatch2"), add2);
+		var add3 = jQuery(xml.find("customerMatchedAddress")[2]);
+		updateAddressMatch(jQuery("#addMatch3Radio"), jQuery("#addMatch3"), add3);
+
+
+	}
+
+	function updateAddressMatch($radio, $el, $xmlList) {
+		var street = $xmlList.find("streetAddress").text();
+		var city = $xmlList.find("city").text();
+		var state = $xmlList.find("state").text();
+		var zip = $xmlList.find("zipcode").text();
+
+		jQuery($el.children()[0]).html(street);
+		jQuery($el.children()[1]).html(city);
+		jQuery($el.children()[2]).html(state);
+		jQuery($el.children()[3]).html(zip);
+	}
+
+
+
+	function handleEligible() {
+		jQuery("#availabilityForm").hide();
+		jQuery("#addressMatch").hide();
+		jQuery("#serviceAvailable").show();
+	}
+
+	function handleIneligible() {
+		jQuery("#availabilityForm").hide();
+		jQuery("#addressMatch").hide();
+		jQuery("#serviceUnavailable").show();
+	}
+	function handleInvalid() {
+		jQuery("#availabilityForm").hide();
+		jQuery("#invalidZipMessage").show();
+	}
+	function handleAddressMatch(response) {
+		jQuery("#availabilityForm").hide();
+		jQuery("#addressMatch").hide();
+		jQuery("#addressMatch").show();
+		parseAddressMatch(response);
+	}
+
+	function handleFieldError() {
+		jQuery("#availabilityForm").hide();
+		jQuery("#addressMatch").hide();
+		jQuery("#invalidAddressMessage").show();
+	}
+
+	function handleDataError() {
+		jQuery("#availabilityForm").hide();
+		jQuery("#addressMatch").hide();
+		jQuery("#dataError").show();
+	}
+
+	function handleServiceDown() {
+		jQuery("#availabilityForm").hide();
+		jQuery("#addressMatch").hide();
+		jQuery("#serviceDown").show();
+	}
+
+	function displayService(nScreen) {
+		if (nScreen == 0) {
+			jQuery("#availabilityForm").show();
+			jQuery("#invalidAddressMessage").hide();
+			jQuery("#addressMatch").hide();
+			jQuery("#serviceAvailable").hide();
+			jQuery("#serviceUnavailable").hide();
+			jQuery("#dataError").hide();
+			jQuery("#serviceDown").hide();
+			jQuery("#invalidZipMessage").hide();
+		} else if (nScreen == 1) {
+			jQuery("#availabilityForm").hide();
+			jQuery("#addressMatch").hide();
+			jQuery("#invalidAddressMessage").hide();
+			jQuery("#serviceAvailable").hide();
+			jQuery("#serviceUnavailable").hide();
+			jQuery("#invalidZipMessage").hide();
+			jQuery("#serviceAvailable").show();
+		} else if (nScreen == 2) {
+			jQuery("#availabilityForm").hide();
+			jQuery("#addressMatch").hide();
+			jQuery("#addressMatch").hide();
+			jQuery("#serviceAvailable").hide();
+			jQuery("#serviceUnavailable").hide();
+			jQuery("#invalidZipMessage").hide();
+			jQuery("#serviceUnavailable").show();
+		}
+	}
+
+// var globalNavDefaultSelections = {
+// 	"urls": {
+// 		// "navService": "/navservice/navservlet",
+// 		// "store": "http://www.wireless.att.com",
+// 		// "www": "http://www.att.com",
+// 		// "olam": "https://www.att.com",
+// 		// "myAtt": "https://www.att.com",
+// 		// "urlMap": {}
+// 	},
+// 	// "useDefaultJSONSource": true,
+// 	// "locale": "en_US",
+// 	// "global": "Personal",
+// 	// "primary": "010000",
+// 	// "secondary": "011000"
+// };
+// var customGlobalNavResources = {
+// 	// "userInfo": templateSelector('user_info.xhr'),
+// 	"segmentationMenu": " http://www.att.com/globalnav/includes/segmentation_menu.jsp",
+// 	"menuJSON": globalNavDefaultSelections.urls.navService,
+// 	"failSafeJSON": "http://www.att.com/globalnav/resources/json/GlobalnavLinksInJsonString.txt"
+// };
+// var globalNavResourceParams = {
+// 	'globalItem': 'Personal',
+// 	'render': '010000',
+// 	'platform': 'shop',
+// 	'p_linkChangeClass': 'openModal localModal'
+// };
+window.onscroll = function() {
+	var y = jQuery(this).scrollTop();
+	if (y >= 130){
+		// fixed header dynamo
+		jQuery(".duplicate .inner-div").addClass("on");
+		jQuery("#bbro ").addClass("up");
+	}
+	else{
+		jQuery(".duplicate .inner-div").removeClass("on");
+		jQuery("#bbro ").removeClass("up");
+	}
+
+};
+/** Set cookies **/
+var date = new Date();
+date.setTime(date.getTime() + (5184000000));
+var expires = "; expires=" + date.toGMTString();
+document.cookie = location.search.replace('?', '') + expires;
+/** -- **/
+
+	$.noConflict();
+
+	function showVids(action) {
+		if (action == 'play') {
+			jQuery('.thumbOUT').attr("src", "media/en_US/images/atrix/NAV_videos-selected.png");
+			jQuery('.highlight').css({
+				display: "none"
+			});
+			gvp.showPopUp('', true, true, 'gvp', 'video_resources/xml/gvp_Motorola-ATRIX-Multimedia-Dock_640x360.xml&gvpLgFormat');
+		} else if (action == 'stop') {
+			jQuery('.thumbOUT').attr("src", "media/en_US/images/atrix/NAV_videos.png");
+			jQuery('#thumb' + currScene).css({
+				display: "block"
+			});
+		}
+	}
+
+	function vidPopup() {
+		alert("gvp.showPopUp('', true, true, 'gvp', 'TBD');");
+	}
+	/**
+jq mixin to allow delayed animation chaining
+*/
+	jQuery.fn.wait = function(time, type) {
+		time = time || 1000;
+		type = type || "fx";
+		return this.queue(type, function() {
+			var self = this;
+			setTimeout(function() {
+				jQuery(self).dequeue();
+			}, time);
+		});
+	};
+	var scene_number = 1;
+	var num_scenes = 7;
+	var currScene;
+	var old_scene_number;
+	var shouldAnimate = true;
+	var defaultStyleAttribs = new Array();
+	for (var p = 0; p < num_scenes; p++) {
+		defaultStyleAttribs[p] = new Array();
+	}
+	jQuery(document).ready(function() {
+		for (var i = 1; i < num_scenes + 1; i++) {
+			jQuery('.scene' + i).each(function(index) {
+				defaultStyleAttribs[i][index] = jQuery(this).attr("style");
+			});
+		}
+		jQuery('.orderBtn').attr("href", "#");
+		jQuery('.orderBtn').click(function() {
+			gvp.showPopUp('Preorder MOTOROLA ATRIX', true, true, 'div', '/shop/en_US/wireless/devices/atrix_order_modal.html|534|220');
+		});
+
+		scene_animation(1);
+
+		jQuery(".faqContainer").children(".faqArrow").bind("click", faqToggler.toggle);
+		jQuery(".faqContainer").children(".faqLink").bind("click", faqToggler.toggle);
+
+		jQuery("#scene6").children("a").bind("mouseover", vidRolloverHandler);
+		jQuery("#scene6").children("a").bind("mouseout", vidRolloverHandler);
+
+	});
+
+	function vidRolloverHandler($event) {
+		var target = jQuery($event.target);
+		target.parent().children(".overVidImg").toggle();
+		// target.parent().children(".outVidImg").toggle();
+	}
+
+	var faqToggler = {
+		toggle: function(event) {
+			event.preventDefault();
+			// IE8 fix
+			document.getElementById('atrix').style.height = '0%';
+			event.preventDefault();
+			var eTarget = jQuery(event.target);
+			eTarget.parent().children(".faqAnswer").toggle();
+			if (eTarget.parent().children(".faqArrow").attr("src") == "img/tabbedcontent/expand.png") {
+				eTarget.parent().children(".faqArrow").attr("src", "img/tabbedcontent/collapse.png")
+			} else if (eTarget.parent().children(".faqArrow").attr("src") == "img/tabbedcontent/collapse.png") {
+				eTarget.parent().children(".faqArrow").attr("src", "img/tabbedcontent/expand.png")
+			}
+			// IE8 fix
+			document.getElementById('atrix').style.height = '100%';
+		}
+	};
+
+	function scene_animation(scene_num, fastSwitch) {
+		
+		var timeOutModifier = (fastSwitch?0.01:1);
+		
+		currScene = scene_num;
+		switch (scene_num) {
+			case 1:
+				if (jQuery.browser.msie && parseInt(jQuery.browser.version, 10) === 6) {
+					jQuery('#atrix_mq_wrapper').html('<img src="media/en_US/images/atrix/ATRIX-landing.jpg" title="" alt="" class="" id="" border="0" usemap="#mapSweeps">');
+				} else {
+					jQuery('#titleAndCopy').wait(300).animate({
+						left: 60
+					}, 500);
+					jQuery('#learnMoreBtn').wait(900).fadeIn(500);
+					jQuery('#microcell1').animate({
+						left: 390
+					}, 1000, "easeOutQuad");
+					jQuery('#coreShapes1').animate({
+						left: 365
+					}, 1000, "easeOutQuad");
+					jQuery('#view360').delay(1100).animate({
+						left: 447
+					}, 400, "easeOutQuad");
+				}
+				break;
+			case 2:
+				if (jQuery.browser.msie && parseInt(jQuery.browser.version, 10) === 6) {
+					jQuery('#atrix_mq_wrapper').html('<img src="media/en_US/images/atrix/ATRIX-Power.jpg" title="" alt="" class="" id="" border="0" usemap="#mapNoSweeps">');
+				} else {
+					jQuery('#title2').animate({
+						left: 85
+					}, 600, "easeOutQuad");
+					jQuery('#businessAccountBtn2').delay(600).fadeIn(500);
+					jQuery('#personalAccountBtn2').delay(600).fadeIn(500);
+
+					jQuery('#lampLight').delay(1000).fadeIn(0).delay(30).fadeOut(0).delay(200).fadeIn(0);
+					jQuery('#microcell2').delay(1240).fadeIn(0);
+					jQuery('#laptop2').animate({
+						left: 400
+					}, 600, "easeOutQuad");
+					jQuery('#microcellShade').delay(1240).fadeIn(0);
+				}
+				break;
+			case 3:
+				if (jQuery.browser.msie && parseInt(jQuery.browser.version, 10) === 6) {
+					jQuery('#atrix_mq_wrapper').html('<img src="media/en_US/images/atrix/ATRIX-Onthego.jpg" title="" alt="" class="" id="" border="0" usemap="#mapNoSweeps">');
+				} else {
+					jQuery('#roads').animate({
+						top: 277
+					}, 1000, "easeOutExpo");
+					jQuery('#buildings').delay(700).fadeIn(0).animate({
+						top: 388
+					}, 500);
+					jQuery('#house').delay(500).fadeIn(0).animate({
+						top: 290
+					}, 500);
+					jQuery('#microcell3').delay(200).animate({
+						left: 35
+					}, 900, "easeOutExpo");
+					// jQuery('#coreShapes3').delay(200).animate({left:-20}, 700, "easeOutExpo");
+					jQuery('#header3').animate({
+						left: 471
+					}, 500);
+					jQuery('#subheaderZip3').delay(1000).fadeIn(0);
+				}
+				break;
+			case 4:
+				if (jQuery.browser.msie && parseInt(jQuery.browser.version, 10) === 6) {
+					jQuery('#atrix_mq_wrapper').html('<img src="media/en_US/images/atrix/ATRIX-OnyourTV.jpg" title="" alt="" class="" id="" border="0" usemap="#mapNoSweeps">');
+				} else {
+					jQuery('#businessAccountBtn4').delay(1100* timeOutModifier).fadeIn(600* timeOutModifier);
+					jQuery('#personalAccountBtn4').delay(1100* timeOutModifier).fadeIn(600* timeOutModifier);
+					jQuery('#sketches4').delay(200* timeOutModifier).animate({
+						left: 460
+					}, 1000* timeOutModifier, "easeOutCubic");
+					jQuery('#coreShapes4').delay(300* timeOutModifier).animate({
+						left: 500
+					}, 700* timeOutModifier, "easeOutBack");
+					jQuery('#microcell4').delay(200* timeOutModifier).animate({
+						left: 500
+					}, 700* timeOutModifier, "easeOutBack");
+					jQuery('#titleCopy4').animate({
+						left: 105
+					}, 1000* timeOutModifier, "easeOutQuad");
+				}
+				break;
+			case 5:
+				if (jQuery.browser.msie && parseInt(jQuery.browser.version, 10) === 6) {
+					jQuery('#atrix_mq_wrapper').html('<img src="media/en_US/images/atrix/ATRIX-OntheRoad.jpg" title="" alt="" class="" id="" border="0" usemap="#mapNoSweeps">');
+				} else {
+					jQuery('#headers5').animate({
+						left: 85
+					}, 1000, "easeOutQuad");
+					jQuery('#content5').delay(200).animate({
+						left: 85
+					}, 800, "easeOutQuad");
+					jQuery('#coreShapes5').animate({
+						top: 294,
+						left: 662
+					}, 850, "easeOutExpo");
+					jQuery('#microcell5').delay(200).animate({
+						left: 753
+					}, 850, "easeOutCubic");
+					jQuery('#cable5').animate({
+						left: 785
+					}, 850, "easeOutCubic");
+					jQuery('#moreHelp5').delay(700).fadeIn(700);
+				}
+				break;
+			case 6:
+				if (jQuery.browser.msie && parseInt(jQuery.browser.version, 10) === 6) {
+					jQuery('#atrix_mq_wrapper').html('<a href="http://www.att.com/network"><img src="media/en_US/images/atrix/network.png" title="" alt="" class="" id="" border="0"></a>');
+				} else {
+					jQuery('#header6').animate({
+						left: 335
+					}, 500);
+					jQuery('#vid1').animate({
+						top: 85
+					}, 1000, "easeOutQuint");
+					jQuery('#vid2').animate({
+						top: 82
+					}, 1000, "easeOutQuint");
+					jQuery('#vid3').animate({
+						top: 61
+					}, 1000, "easeOutQuint");
+					jQuery('#vid4').animate({
+						top: 85
+					}, 1000, "easeOutQuint");
+					jQuery('#vidCopy6').animate({
+						top: 400
+					}, 900, "easeOutQuint");
+					jQuery('#leftCoreShapes6').animate({
+						top: 174
+					}, 900);
+					jQuery('#rightCoreShapes6').animate({
+						top: 135
+					}, 900);
+				}
+				break;
+			default:
+		}
+	}
+
+	function crack() {
+		jQuery('#crack2').css("display", "block");
+	}
+
+	function show_button1() {
+		jQuery('#button1').fadeIn(500);
+	}
+
+	function show_button2() {
+		jQuery('#button2').fadeIn(500);
+	}
+
+	function show_button3() {
+		jQuery('#button3').fadeIn(500);
+	}
+
+	function show_button4() {
+		jQuery('#button4').fadeIn(500);
+	}
+
+	function show_button5() {
+		jQuery('#button5').fadeIn(500);
+	}
+
+	function next_scene(newScene, fastSwitch) {
+		var timeOutModifier = (fastSwitch?0.01:1);
+		
+		old_scene_number = scene_number;
+		jQuery('#scene' + old_scene_number).animate({
+			left: "-1000"
+		}, 500 * timeOutModifier, "easeOutExpo");
+		jQuery('#scene' + old_scene_number).removeClass('onstage').addClass('offstage');
+		jQuery('#scene' + newScene).removeClass('offstage').addClass('onstage');
+		scene_animation(newScene, fastSwitch);
+		scene_number = newScene;
+		stage_manager.reset_scene(old_scene_number);
+	}
+	var stage_manager = {
+		reset_scene: function(sceneToReset) {
+			jQuery('.scene' + sceneToReset).each(function(index) {
+				jQuery(this).attr("style", defaultStyleAttribs[sceneToReset][index]);
+			});
+		}
+	};
+	var thumbNav = {
+		currentTab: 1,
+		nextTab: function() {
+			this.changeTab(this.currentTab == 7 ? 2 : this.currentTab + 1);
+		},
+		previousTab: function() {
+			this.changeTab(this.currentTab == 2 ? 7 : this.currentTab - 1);
+		},
+		changeTab: function(num, fastSwitch) {
+
+			if (num == 1) {
+				jQuery("#leftBumper").attr("src", "img/heroassets/homeButton_grey.png");
+			} else {
+				jQuery("#leftBumper").attr("src", "img/heroassets/homeButton_orange.png");
+			}
+
+			if (num> -2) {
+				jQuery('#prevBumper').show();
+			}
+			if (num <= 1) {
+				jQuery('#prevBumper').hide();
+			}
+			if (this.currentTab != num && num != -1) {
+				next_scene(num, fastSwitch);
+				if (this.currentTab != 1) {
+					jQuery('#thumb' + this.currentTab).css("display", "none");
+				}
+				if (num === 0) {
+					this.currentTab = 1;
+				} else {
+					jQuery('#thumb' + num).css("display", "block");
+					this.currentTab = num;
+				}
+				if (num == 6) {
+					jQuery('#thumb7').css("display", "block");
+				} else if (num == 7) {
+					if (old_scene_number == 2) {
+						thumbNav.changeTab(6,fastSwitch);
+					} else {
+						thumbNav.changeTab(2,fastSwitch);
+					}
+				} else {
+					jQuery('#thumb7').css("display", "none");
+				}
+			}
+		}
+	};
+
+
+	 // DEEP LINKING STUFF
+	jQuery(document).ready(function() {
+		var sLoadPath = "";
+		
+		if(typeof  SWFAddress!== 'undefined')
+			sLoadPath=SWFAddress.getPath();
+
+		handleDeepLink(sLoadPath);
+
+	});
+
+
+	function handleDeepLink(sDeepLink) {
+		switch (sDeepLink) {
+			case "home":
+				thumbNav.changeTab(1);
+				break;
+			case "activate":
+				thumbNav.changeTab(2);
+				break;
+			case "check_availability":
+				thumbNav.changeTab(3);
+				break;
+			case "manage_settings":
+				thumbNav.changeTab(4);
+				break;
+			case "help":
+				thumbNav.changeTab(5);
+				break;
+			case "videos":
+				thumbNav.changeTab(6);
+				break;
+			case "features":
+				display("show", 0);
+				break;
+			case "faqs":
+				display("show", 1);
+				break;
+			case "specs":
+				display("show", 2);
+				break;
+		}
+
+	}
+
+	function gotoFAQ(event, id){
+			display("show", 1);
+			jQuery(window).scrollTop(jQuery(id).offset().top)
+			jQuery(id).children(".faqArrow").attr("src", "img/tabbedcontent/faqArrowOpen.png");
+			jQuery(id).children(".faqAnswer").slideDown();
+		}
+		function display(action, id) {
+			if (action == 'show' && id == '0') {
+
+				document.getElementById("tabContent"+id).style.display = "block";
+				document.getElementById("tabContent1").style.display = "none";
+				document.getElementById("tabContent2").style.display = "none";
+				//document.getElementById("link0").style.display = "block";
+				document.getElementById("link1").style.display = "none";
+				document.getElementById("link2").style.display = "none";
+			} else if (action == 'show' && id == '1')  {
+
+				document.getElementById("tabContent"+id).style.display = "block";
+				//document.getElementById("tabContent0").style.display = "none";
+				document.getElementById("tabContent2").style.display = "none";
+				//document.getElementById("link0").style.display = "none";
+				document.getElementById("link1").style.display = "block";
+				document.getElementById("link2").style.display = "none";
+
+							document.getElementById('atrix').style.height = '0%';
+			document.getElementById('atrix').style.height = '100%';			
+			} else if (action == 'show' && id == '2') {
+
+				document.getElementById("tabContent"+id).style.display = "block";
+				//document.getElementById("tabContent0").style.display = "none";
+				document.getElementById("tabContent1").style.display = "none";
+				//document.getElementById("link0").style.display = "none";
+				document.getElementById("link1").style.display = "none";
+				document.getElementById("link2").style.display = "block";
+			}
+
+
+		}
+
+		var isIE6 = (navigator.appVersion.indexOf("MSIE 6.0") != -1) ? true : false;
+		if (isIE6){
+			$('fixMeForIE1').setStyle({left: '-267px'});
+			$('fixMeForIE2').setStyle({left: '72px'});
+		}
+
+
+	try {
+	//NEW 'share1' bar button functionality
+	(function(){
+		meteor.tracking.track('b5d6e85c-6c0f-40e7-b900-e7a2fa877883', {'url_storage_source': 'hash' , 'cookie_domain' : '.att.com', 'query_string_tag_key': ['mtag', 'source', 'src']});
+		if (meteor.detect_browser().device === "mobile") {
+			meteor.sharing.superbar.init({'id':'share1', 'parentID':'meteorShare', 'device':'standard', 'size':'small', 'orientation':'vertical', 'sites':['twitter','facebook','linkedin','email'],
+			'facebook':{'title':'AT&T MicroCell - Wireless Signal Booster - Wireless from AT&T', 'message':"AT&T's MicroCell is a wireless network extender that acts like a mini cellular tower extending your wireless network in your home or small business for improved cellular performance.",'url':''},
+			'twitter':{'title':'AT&T MicroCell - Wireless Signal Booster - Wireless from AT&T', 'message':'AT&T MicroCell - Wireless Signal Booster - Wireless from AT&T','url':''},
+			'linkedin':{'title':'AT&T MicroCell - Wireless Signal Booster - Wireless from AT&T', 'message':'AT&T MicroCell - Wireless Signal Booster - Wireless from AT&T','url':''},
+			'email':{'title':'AT&T MicroCell - Wireless Signal Booster - Wireless from AT&T', 'message':"AT&T's MicroCell is a wireless network extender that acts like a mini cellular tower extending your wireless network in your home or small business for improved cellular performance.",'url':''}
+			});
+		}
+		else {
+			meteor.sharing.superbar.init({'id':'share1', 'parentID':'meteorShare', 'device':'standard', 'size':'small', 'orientation':'vertical', 'sites':['twitter','facebook','linkedin','email'],
+			'facebook':{'title':'AT&T MicroCell - Wireless Signal Booster - Wireless from AT&T', 'message':"AT&T's MicroCell is a wireless network extender that acts like a mini cellular tower extending your wireless network in your home or small business for improved cellular performance.",'url':''},
+			'twitter':{'title':'AT&T MicroCell - Wireless Signal Booster - Wireless from AT&T', 'message':'AT&T MicroCell - Wireless Signal Booster - Wireless from AT&T','url':''},
+			'linkedin':{'title':'AT&T MicroCell - Wireless Signal Booster - Wireless from AT&T', 'message':'AT&T MicroCell - Wireless Signal Booster - Wireless from AT&T','url':''},
+			'email':{'title':'AT&T MicroCell - Wireless Signal Booster - Wireless from AT&T', 'message':"AT&T's MicroCell is a wireless network extender that acts like a mini cellular tower extending your wireless network in your home or small business for improved cellular performance.",'url':''}
+			});
+		}
+		meteor.orion.init();
+	})();
+	} catch(e) {
+		// social media blocked
+	}
+
+
+
+
+	//Zip Code Check
+	function checkZip()
+{             
+	var inputZip =   $("#zip_code").val()  ;        
+	var eligible = false;//$.inArray(inputZip, allZips);   
+	var temp="";
+	if($("#zip_code").val().length==5)
+	{
+	for (var i = allZips.length - 1; i >= 0; i--) {
+ 		temp= allZips[i];
+	 	if(temp== inputZip)
+	 	{
+	 		eligible=true;
+	 		i=0;
+	 	}
+	}; 
+	$("#zipResultText").show();
+	                             
+	if (!eligible  )
+	{            
+		// NOT ELIGIBLE   
+		iconDiv.html("<img class='zipCheck' src='" + imgPath + "zipResultN.png' alt='ZIP Code is not Eligible Icon' />");
+		responseDiv.html("<p><img class='mobileAlert' src='" + imgPath + "zipResultN.png' alt='ZIP Code is not Eligible Icon' />We're sorry, but this offer is currently not available in your area.</nobr></p>"); 
+ 
+$("#checkEligID").removeClass('whiteButton');
+				$("#checkEligID").addClass('greyButton');
+		//$("#shopNowID").removeClass('blueButton');
+		//$("#shopNowID").addClass('greyButton');
+		
+	}         
+	else
+	{
+		// ELIGIBLE     
+		iconDiv.html("<img class='zipCheck' src='" + imgPath + "zipResultY.png' alt='ZIP Code is Eligible Icon' />");	
+		responseDiv.html("<p><img class='mobileAlert' src='" + imgPath + "zipResultY.png' alt='ZIP Code is Eligible Icon' />Congratulations!  This offer is available in <nobr>your area.</nobr></p>");  
+
+$("#checkEligID").removeClass('whiteButton');
+				$("#checkEligID").addClass('greyButton');
+		 
+
+		//$("#shopNowID").addClass('blueButton');
+		//$("#shopNowID").removeClass('greyButton');
+		
+	}    
+
+	iconDiv.css("visibility", "visible");            
+	responseDiv.css("visibility", "visible");   
+
+	$("#zipCheckDiv").animate({height:"100px", duration:.2});  
+	}//end if(inputZip.length==5)              
+}   
+
+
+
+
+
+// ---------------------------------------------------------------------------------------------------------
+
+function checkBlank()
+{
+	var inputZip = Number($("#zip_code").val());  
+
+
+	if (inputZip == "" || inputZip.toString().length == 5 )
+	{
+		$("#zipCheckDiv").animate({height:"50px", duration:.3}); 
+		iconDiv.css("visibility", "hidden");            
+		responseDiv.css("visibility", "hidden");  
+
+		$("#zipResultText").hide();  
+	}
+}
+
+// ---------------------------------------------------------------------------------------------------------
+$=jQuery;
+function isNumberKey(evt) {
+
+	var inputZip = Number($("#zip_code").val());  
+
+    var charCode = (evt.which) ? evt.which : event.keyCode;
+    if (charCode != 46 && charCode > 31
+    && (charCode < 48 || charCode > 57))
+        return false;
+
+    // if(inputZip.toString().length == 5)
+    	// return false;
+
+    // alert(inputZip.toString().length);
+    if (inputZip.toString().length == 5)
+    {
+    	// alert("too long"); 
+    	e.preventDefault();
+    	return false;
+    }
+
+    return true;
+}
+ 
+

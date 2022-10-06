@@ -1,0 +1,112 @@
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = "./index.js");
+/******/ })
+/************************************************************************/
+/******/ ({
+
+/***/ "./index.js":
+/*!******************!*\
+  !*** ./index.js ***!
+  \******************/
+/*! no exports provided */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _js_interaction_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./js/interaction.js */ \"./js/interaction.js\");\n/* harmony import */ var _js_interaction_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_js_interaction_js__WEBPACK_IMPORTED_MODULE_0__);\n// js files\r\n\r\n\n\n//# sourceURL=webpack:///./index.js?");
+
+/***/ }),
+
+/***/ "./js/interaction.js":
+/*!***************************!*\
+  !*** ./js/interaction.js ***!
+  \***************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("var USER_INTERACTION_EVENTS = [\"scroll\", \"click\", \"keydown\", \"mousemove\", \"touchstart\"];\n/**\r\n * Only fires function after user interaction.\r\n * Handles clean up of own events.\r\n * @param {function} callback\r\n */\n\nfunction onUserInteraction(callback) {\n  // must save this here or we won't be able to remove events after callback is fired\n  var enhancedCallback = function enhancedCallback() {\n    callback();\n    USER_INTERACTION_EVENTS.forEach(function (uiEvent) {\n      window.removeEventListener(uiEvent, enhancedCallback);\n    });\n  };\n\n  USER_INTERACTION_EVENTS.forEach(function (uiEvent) {\n    window.addEventListener(uiEvent, enhancedCallback);\n  });\n}\n\nfunction createElement(node, content, parent) {\n  var setHTML = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;\n  var element = document.createElement(node);\n\n  if (!setHTML) {\n    element.innerText = content;\n  } else {\n    element.innerHTML = content;\n  }\n\n  document.querySelector(parent).appendChild(element);\n}\n\nfunction fireGTM() {\n  var gtm = \"(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-PMHB3ZM');\";\n  createElement(\"script\", gtm, \"head\");\n}\n\nfunction fireTrustedForm() {\n  var trustedForm = \"(function()  { var field = 'xxTrustedFormCertUrl'; var provideReferrer = false; var invertFieldSensitivity = false; var tf = document.createElement('script'); tf.type = 'text/javascript'; tf.async = true; tf.src = 'http' + ('https:' == document.location.protocol ? 's' : '') + '://cfptwebapi.cfdomains.com/trustedform.js?provide_referrer=' + escape(provideReferrer) + '&field=' + escape(field) + '&l='+new Date().getTime()+Math.random() + '&invert_field_sensitivity=' + invertFieldSensitivity; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(tf, s); } )();\";\n  var noScript = '<img src=\"https://cfptwebapi.cfdomains.com/ns.gif\" />';\n  createElement(\"script\", trustedForm, \"head\");\n  createElement(\"noscript\", noScript, \"head\", true);\n}\n\nfunction fireAccessibe() {\n  var acsb = \"(function(){var s = document.createElement('script'),e = ! document.body ? document.querySelector('head') : document.body;s.src = 'https://acsbapp.com/apps/app/assets/js/acsb.js';s.async = s.defer = true;s.onload = function(){acsbJS.init({statementLink : '',feedbackLink : '',footerHtml : '',hideMobile : false,hideTrigger : false,language : 'en',position : 'left',leadColor : '#154f8f',triggerColor : '#6aa1e0',triggerRadius : '8%',triggerPositionX : 'left',triggerPositionY : 'bottom',triggerIcon : 'default',triggerSize : 'small',triggerOffsetX : 20,triggerOffsetY : 20,mobile : {triggerSize : 'small',triggerPositionX : 'left',triggerPositionY : 'bottom',triggerOffsetX : 20,triggerOffsetY : 20,triggerRadius : '8%'}});};e.appendChild(s);}());\";\n  createElement(\"script\", acsb, \"head\");\n}\n\nfunction sharedEntryOnUserInteraction() {\n  window.dataLayer = window.dataLayer || [];\n  window.dataLayer.push({\n    event: \"userInteraction\"\n  });\n}\n\nonUserInteraction(function () {\n  fireTrustedForm();\n  fireAccessibe();\n  sharedEntryOnUserInteraction();\n});\nfireGTM();\n\n//# sourceURL=webpack:///./js/interaction.js?");
+
+/***/ })
+
+/******/ });

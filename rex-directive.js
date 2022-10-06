@@ -1,0 +1,1 @@
+"use strict";var oshpDir=angular.module("rexCarouselDirective",[]);oshpApp.directive("rexCarousel",function(){return{restrict:"E",templateUrl:"views/rexCarousel.html",link:function(element,attrs,$http){}}});

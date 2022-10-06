@@ -1,0 +1,1 @@
+(window.salesJsonp=window.salesJsonp||[]).push([[17],{"9llV":function(e,n,s){"use strict";s.r(n);var a=s("q1tI"),l=s("r3d+"),o=s.n(l),c=a.createElement;n.default=function(e){return c("div",{className:"pad-t-sm-lg pad-b-sm-lg"},c(o.a,{size:"large",className:"block color-ui-black centered ",kind:"secondary",onClick:e.onClick}," Load ",e.remainingItems," more "))}}}]);

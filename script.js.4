@@ -1,0 +1,9 @@
+$(document).ready(function() {
+	$(".tabs li").click(function(e) {
+		$(".tabcontent").hide();
+		$(".tabs li").removeClass("current");
+		$(this).addClass("current");
+		var tabID = parseInt($(this).attr("id").replace("lobTab",""))-1;
+		$(".tabcontent:eq("+tabID+")").fadeIn('fast');
+	});
+})

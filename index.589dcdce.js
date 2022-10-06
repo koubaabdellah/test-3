@@ -1,0 +1,1 @@
+!function(){var e=document.getElementById("expand-button"),t=document.getElementById("expand-wrap");e.addEventListener("click",(function(){t.classList.toggle("expanded");var a=" "+e.className+" ";~a.indexOf(" active ")?this.className=a.replace(" active "," "):this.className+=" active"}))}();

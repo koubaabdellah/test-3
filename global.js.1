@@ -1,0 +1,60 @@
+	var selectPillar = function(index, selected) {
+        var newSelection = index;
+        var oldElementSelected;
+        var newElementSelected;
+        if(typeof selected !== 'undefined'){
+            oldElementSelected = $('#pillar' + (selected));
+        }               
+        if(newSelection !== selected) {
+            newElementSelected = $('#pillar' + (newSelection));
+			var classExit = 'slideOutLeft';
+            var classEnter = 'slideInRight';
+            if(newSelection < selected){
+                classExit = 'slideOutRight';
+                classEnter = 'slideInLeft';
+            }
+            if(oldElementSelected) {
+            	oldElementSelected.addClass(classExit);            	
+            }
+            newElementSelected.addClass(classEnter);
+            $('.p' + index).addClass("selected");
+            $('.p' + selected).removeClass("selected");
+            $('.p' + selected).addClass("pending");
+
+
+            setTimeout(function() {
+            	if(oldElementSelected) {
+            		oldElementSelected.removeClass(classExit);
+	            }
+            	newElementSelected.removeClass(classEnter); 
+				$('.p' + selected).removeClass("pending");
+            },1000);
+		}
+	}
+	var selected;
+	var changePillar= function(index) {
+		selectPillar(index, selected);
+		selected = index;
+	}
+    var goPrevious = function() {
+        $('#carousel-container').carousel('prev'); 
+    }
+    var goNext = function() {
+         $('#carousel-container').carousel('next'); 
+        $('#carousel-container').carousel(200);
+    }
+$( document ).ready(function() {
+	changePillar(1);
+    $('#carousel-container').on('slide.bs.carousel');
+    $('#carousel-container').carousel('pause');
+    var url = $("#programOverviewVideo").attr('src');
+    $("#modalVideo").on('hide.bs.modal', function() {
+        $("#programOverviewVideo").attr('src', '');
+    });
+    $("#modalVideo").on('show.bs.modal', function() {
+        $("#programOverviewVideo").attr('src', url);
+    });
+});
+var getStartedRedirect = function() {
+    window.location = "https://partnerexchange.att.com/apex/PortalDesignEnrollmentForm";
+}
